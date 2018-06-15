@@ -143,10 +143,9 @@ def generate_portioanl_dataset(portion,len_colon):
     len_dates = len(dates[0])
     #len_colon = int(round((len_newswire+len_dates)* float(portion)/(1-float(portion))))
     colon = read_colon()
-    colon_portion = get_portion_of_array(colon,len_colon)
+    #colon_portion = get_portion_of_array(colon,len_colon)
     #data_all = concatenate_multiple_array(newswire,dates,colon_portion)
-
-    colon_portion_date = concatenate_binary_array(colon_portion, dates)
+    #colon_portion_date = concatenate_binary_array(colon_portion, dates)
 
     ######################################### save news and dates in a new format #####################################
     # news_date = concatenate_binary_array(newswire,dates)
@@ -155,27 +154,33 @@ def generate_portioanl_dataset(portion,len_colon):
     # sample_weights_news_date = get_sample_weights(news_date[3:6], mu=0.05)
     # np.save("data/data_mixed/news_date_sample_weights", sample_weights_news_date)
 
+     ###############################   save news in a new format ########################################################
+    read.save_hdf5("data/data_mixed/news_train_input", ["char", "pos", "unic"], newswire[:3],['int8', 'int8', 'int8'])
+    read.save_hdf5("data/data_mixed/news_train_target", ["interval_softmax", "explicit_operator", "implicit_operator"], newswire[3:6], ['int8', 'int8', 'int8'])
+    sample_weights_news_date = get_sample_weights(newswire[3:6], mu=0.05)
+    np.save("data/data_mixed/news_sample_weights", sample_weights_news_date)
+
 
 
     ######################################### save dates + news + n% colon   and save  n% colon#####################################
 
     # read.save_hdf5("data/data_mixed/colon_" + str(portion) + "_train_input", ["char", "pos", "unic"],colon_portion[:3], ['int8', 'int8', 'int8'])
     # read.save_hdf5("data/data_mixed/news_colon_"+str(portion)+"_train_input", ["char","pos","unic"], data_all[:3], ['int8','int8','int8'])
-    read.save_hdf5("data/data_mixed/colon_portion_date_" + str(portion) + "_train_input", ["char", "pos", "unic"], colon_portion_date[:3],['int8', 'int8', 'int8'])
+    #read.save_hdf5("data/data_mixed/colon_portion_date_" + str(portion) + "_train_input", ["char", "pos", "unic"], colon_portion_date[:3],['int8', 'int8', 'int8'])
 
 
     # read.save_hdf5("data/data_mixed/colon_" + str(portion) + "_train_target", ["interval_softmax", "explicit_operator", "implicit_operator"],colon_portion[3:6], ['int8', 'int8', 'int8'])
     # read.save_hdf5("data/data_mixed/news_colon_"+str(portion)+"_train_target", ["interval_softmax","explicit_operator","implicit_operator"], data_all[3:6], ['int8','int8','int8'])
-    read.save_hdf5("data/data_mixed/colon_portion_date_" + str(portion) + "_train_target", ["interval_softmax","explicit_operator","implicit_operator"], colon_portion_date[3:6], ['int8', 'int8', 'int8'])
+    #read.save_hdf5("data/data_mixed/colon_portion_date_" + str(portion) + "_train_target", ["interval_softmax","explicit_operator","implicit_operator"], colon_portion_date[3:6], ['int8', 'int8', 'int8'])
 
     #
     # sample_weights_colon = get_sample_weights(colon_portion[3:6],mu=0.05)
     # sample_weights_all = get_sample_weights(data_all[3:6],mu=0.05)
-    sample_weights_colon_portion_date = get_sample_weights(colon_portion_date[3:6], mu=0.05)
+    #sample_weights_colon_portion_date = get_sample_weights(colon_portion_date[3:6], mu=0.05)
 
     # np.save("data/data_mixed/colon_" + str(portion) + "_sample_weights",sample_weights_colon)
     # np.save("data/data_mixed/news_colon_"+str(portion) + "_sample_weights", sample_weights_all)
-    np.save("data/data_mixed/colon_portion_date_" + str(portion) + "_sample_weights", sample_weights_colon_portion_date)
+    #np.save("data/data_mixed/colon_portion_date_" + str(portion) + "_sample_weights", sample_weights_colon_portion_date)
 
     print portion
 
