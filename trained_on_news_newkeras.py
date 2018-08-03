@@ -8,7 +8,10 @@ from keras.layers import GRU, Dropout, Embedding, Dense,Input
 from keras.regularizers import l2
 from keras.models import Model
 from keras.callbacks import CSVLogger,ModelCheckpoint
+from keras_contrib.layers import CRF
 import keras
+
+
 
 
 def load_hdf5(filename,labels):
@@ -52,19 +55,23 @@ def trainging(storage,exp,sampleweights,char_x,pos_x,unicate_x,trainy_interval,t
 
     Gru_out_2 = GRU(gru_size2, return_sequences=True)
 
-    Interval_output = Dense(type_size_interval, activation='softmax', kernel_regularizer=l2(.01), name='dense_1')
+    Interval_output = CRF(type_size_interval, sparse_target=True, activation='softmax',name='dense_1')
+
+    #Interval_output = Dense(type_size_interval, activation='softmax', kernel_regularizer=l2(.01), name='dense_1')
 
     Gru_out_3 = Bidirectional(GRU(gru_size1,return_sequences=True))
 
     Gru_out_4 = GRU(gru_size2, return_sequences=True)
-    #
-    Explicit_operator = Dense(type_size_operator_ex, activation='softmax', kernel_regularizer=l2(.01), name='dense_2')
+
+    Explicit_operator = CRF(type_size_operator_ex, sparse_target=True,activation='softmax',name='dense_2')
+    #Explicit_operator = Dense(type_size_operator_ex, activation='softmax', kernel_regularizer=l2(.01), name='dense_2')
 
     Gru_out_5 = Bidirectional(GRU(gru_size1,return_sequences=True))
 
     Gru_out_6 = GRU(gru_size2, return_sequences=True)
+    Implicit_operator = CRF(type_size_operator_ex, sparse_target=True, activation='softmax', name='dense_3')
 
-    Implicit_operator = Dense(type_size_operator_im, activation='softmax', kernel_regularizer=l2(.01), name='dense_3')
+    #Implicit_operator = Dense(type_size_operator_im, activation='softmax', kernel_regularizer=l2(.01), name='dense_3')
 
 
 
@@ -98,9 +105,9 @@ def trainging(storage,exp,sampleweights,char_x,pos_x,unicate_x,trainy_interval,t
                   outputs=[interval_output, explicit_operator, implicit_operator])
 
     model.compile(optimizer='rmsprop',
-                  loss={'dense_1': 'categorical_crossentropy',
-                        'dense_2': 'categorical_crossentropy',
-                        'dense_3': 'categorical_crossentropy'},
+                  loss={'dense_1': Interval_output.loss_function,
+                        'dense_2': Explicit_operator.loss_function,
+                        'dense_3': Implicit_operator.loss_function},
                   loss_weights={'dense_1': 1.0, 'dense_2': 0.75, 'dense_3': 0.5},
                   metrics=['categorical_accuracy'],
                   sample_weight_mode="temporal")
@@ -112,7 +119,7 @@ def trainging(storage,exp,sampleweights,char_x,pos_x,unicate_x,trainy_interval,t
 
     filepath = storage + "/weights-improvement-{epoch:02d}.hdf5"
     checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=False)
-    csv_logger = CSVLogger('training_%s.csv' % exp)
+    csv_logger = CSVLogger('model/training_%s.csv' % exp)
 
     callbacks_list = [checkpoint, csv_logger]
 
@@ -128,7 +135,7 @@ def trainging(storage,exp,sampleweights,char_x,pos_x,unicate_x,trainy_interval,t
 
 
 ##################################folder for saving the input files###################################
-file_path = "/extra/dongfangxu9/domain_adaptation/data/data_mixed"
+file_path = "data"
 
 #file_path= "data/data_mixed"
 
@@ -149,11 +156,11 @@ batchsize = 200
 
 
 
-sampleweights = np.load(file_path+"/news_sample_weights.npy")
+sampleweights = list(np.load(file_path+"/news_sample_weights.npy"))
 
 
 ##################################################path to save the output files and csv log files #########################################
-path = "/xdisk/dongfangxu9/domain_adaptation/"
+path = "model/"
 
 exp = "news_devon_news_newkeras"
 storage = path + exp
